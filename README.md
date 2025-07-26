@@ -1,65 +1,64 @@
-FixMyMess
+# FixMyMess
 
-An AI-powered assistant to streamline your document revision workflow.
+**An AI-powered assistant to streamline your document revision workflow.**
 
-FixMyMess is a simple but powerful web tool that helps students, researchers, and professionals address feedback on their documents more efficiently. It extracts comments from .docx files, presents them in a clear interface, and uses AI to generate context-aware revision suggestions.
-The Problem
+FixMyMess is a web-based tool that helps students, researchers, and professionals revise `.docx` documents more efficiently. It extracts comments, displays them alongside the referenced text, and generates context-aware AI suggestions—all in one clean interface.
 
-The process of revising a document based on feedback is often fragmented and tedious. It typically involves:
+---
 
-    Jumping back and forth between comment bubbles and the main text.
+## 🚩 The Problem
 
-    Manually copying and pasting text into a separate AI tool for help.
+Revising documents based on feedback is often tedious and fragmented:
 
-    Losing the overall context of the document, which leads to less relevant AI suggestions.
+- Jumping between comment bubbles and the main text  
+- Manually copying content into external AI tools  
+- Losing overall context, resulting in irrelevant suggestions  
 
-This breaks the flow of writing and makes the revision process slower than it needs to be.
-How FixMyMess Solves It
+This breaks writing flow and slows down revisions.
 
-FixMyMess creates a single, unified workspace for your revisions.
+---
 
-    Context is King: When you upload your document, the app reads the entire text to build a complete contextual understanding.
+## ✅ How FixMyMess Helps
 
-    Intelligent Extraction: It automatically pulls every comment and links it to the exact text it refers to.
+FixMyMess creates a unified revision workspace:
 
-    AI-Powered Suggestions: When you request a revision, the app sends the AI the supervisor's comment, the original text, and the full document context. This results in higher-quality, more relevant suggestions that match the tone and style of your work.
+- **Context-Aware Analysis**: Reads the full document to understand tone and style  
+- **Smart Comment Extraction**: Automatically pairs comments with referenced text  
+- **AI Suggestions**: Sends the comment, original text, and full context to your selected AI provider  
+- **Secure by Design**: All processing happens *entirely in your browser* — no data leaves your device  
 
-    Secure and Private: All file processing happens entirely in your browser. Your documents are never uploaded to a server, ensuring your work remains private.
+---
 
-Key Features
+## ✨ Key Features
 
-    Secure, In-Browser Processing: Your .docx files are never sent over the network.
+- 🔒 **In-Browser Processing** – Files never leave your machine  
+- 🧠 **Context-Aware AI Revisions** – Smarter suggestions, aligned to your writing  
+- 🔄 **Multi-AI Provider Support** – Choose your preferred LLM (e.g., Gemini)  
+- 🧼 **Minimalist UI** – No clutter, just the tools you need  
 
-    Context-Aware AI Revisions: Provides suggestions that understand the entire document.
+---
 
-    Multi-Provider Support: Includes a dropdown to select your preferred AI service.
+## 🚀 How to Use
 
-    Clean, Simple Interface: No clutter, just the tools you need to get the work done.
+1. **Open the App**: Visit the live URL  
+2. **Upload Your File**: Drag and drop or select a `.docx` document  
+3. **Enter API Details**:  
+   - Choose an AI provider  
+   - Paste your API key  
+4. **Review Suggestions**: Click “Get Revision Suggestion” on any comment  
+5. **Apply Fixes**: Copy and implement the revised text into your document  
 
-How to Use
+---
 
-    Open the App: Navigate to the live application URL.
+## 🛠️ Tech Stack
 
-    Upload Your File: Drag and drop or click to select your .docx document.
+- **Frontend**: HTML5 + Tailwind CSS  
+- **Core Logic**: Vanilla JavaScript  
+- **File Parsing**: [JSZip](https://stuk.github.io/jszip/) library  
 
-    Enter API Details:
+---
 
-        Select your AI Provider (e.g., Google Gemini).
+## 📄 License
 
-        Paste your corresponding API key into the input field.
-
-    Get Revisions: For any comment, click the "Get Revision Suggestion" button.
-
-    Copy & Implement: Use the "Copy" button to grab the suggested text and implement it in your document.
-
-Technology Stack
-
-    Frontend: HTML5, Tailwind CSS
-
-    Core Logic: Vanilla JavaScript
-
-    File Parsing: JSZip library
-
-License
-
-This project is licensed under the MIT License. See the LICENSE file for full details.
+This project is licensed under the **MIT License**.  
+See the [LICENSE](./LICENSE) file for full details.
