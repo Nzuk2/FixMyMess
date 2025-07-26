@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FixMyMess - Tidy up your thesis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Merriweather:wght@700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Lato', sans-serif;
+        }
+        .title-font {
+            font-family: 'Merriweather', serif;
+        }
+        .tagline-font {
+            font-family: 'Lato', sans-serif;
+        }
+        .theme-blue {
+             color: #4A6B8A;
+        }
+        .bg-theme-blue {
+            background-color: #4A6B8A;
+        }
+        .hover\:bg-theme-blue-dark:hover {
+            background-color: #3a556d;
+        }
+        .comment-card {
+            transition: all 0.3s ease;
+        }
+        .comment-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .loader {
+             border: 4px solid #f3f3f3;
+             border-top: 4px solid #4A6B8A;
+             border-radius: 50%;
+             width: 40px;
+             height: 40px;
+             animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-8 relative">
+            <h1 class="title-font text-4xl md:text-5xl font-bold theme-blue">FixMyMess</h1>
+            <p class="tagline-font mt-2 text-lg text-gray-600">Tidy up your thesis.</p>
+        </header>
+
+        <main>
+            <!-- File Upload Section -->
+            <div id="upload-section" class="max-w-xl mx-auto bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                <label for="file-upload" class="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                        <svg class="w-10 h-10 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                        <p class="mb-2 text-sm text-gray-500"><span class="font-semibold">Click to upload</span> or drag and drop</p>
+                        <p class="text-xs text-gray-500">DOCX files only</p>
+                    </div>
+                    <input id="file-upload" type="file" class="hidden" accept=".docx"/>
+                </label>
+                <div id="file-name" class="mt-4 text-center text-sm text-gray-500"></div>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loading-indicator" class="hidden flex flex-col items-center justify-center mt-8">
+                <div class="loader"></div>
+                <p class="mt-4 text-gray-600">Analyzing your document and indexing text...</p>
+            </div>
+
+            <!-- Error Message -->
+            <div id="error-message" class="hidden max-w-2xl mx-auto mt-8 p-4 bg-red-100 text-red-700 border border-red-300 rounded-lg"></div>
+
+            <!-- Results Section -->
+            <div id="results-section" class="hidden mt-10">
+                <!-- API Key Input Section -->
+                <div id="api-key-section" class="max-w-2xl mx-auto mb-8 bg-white p-6 rounded-xl shadow-md border border-gray-200">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="md:col-span-2">
+                            <label for="api-key-input" class="block text-sm font-medium text-gray-700">Enter Your API Key</label>
+                            <input type="password" id="api-key-input" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="api-provider" class="block text-sm font-medium text-gray-700">AI Provider</label>
+                            <select id="api-provider" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                <option value="google">Google Gemini</option>
+                                <option value="openai" disabled>OpenAI (Coming Soon)</option>
+                                <option value="anthropic" disabled>Anthropic (Coming Soon)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Extracted Comments</h2>
+                    <button id="new-upload-btn" class="bg-theme-blue hover:bg-theme-blue-dark text-white font-bold py-2 px-4 rounded-lg transition-colors">Upload New File</button>
+                </div>
+                <div id="comments-container" class="space-y-6">
+                    <!-- Comment cards will be inserted here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let fullDocumentContext = '';
+
+        const fileUpload = document.getElementById('file-upload');
+        const fileNameDisplay = document.getElementById('file-name');
+        const uploadSection = document.getElementById('upload-section');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        const errorMessage = document.getElementById('error-message');
+        const resultsSection = document.getElementById('results-section');
+        const commentsContainer = document.getElementById('comments-container');
+        const newUploadBtn = document.getElementById('new-upload-btn');
+        const apiKeyInput = document.getElementById('api-key-input');
+        const apiProviderSelect = document.getElementById('api-provider');
+        
+        apiKeyInput.value = localStorage.getItem('api-key') || '';
+        apiProviderSelect.value = localStorage.getItem('api-provider') || 'google';
+
+        apiKeyInput.addEventListener('input', () => localStorage.setItem('api-key', apiKeyInput.value));
+        apiProviderSelect.addEventListener('change', () => localStorage.setItem('api-provider', apiProviderSelect.value));
+
+
+        fileUpload.addEventListener('change', handleFileSelect);
+        newUploadBtn.addEventListener('click', resetUI);
+
+        function resetUI() {
+            uploadSection.classList.remove('hidden');
+            resultsSection.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+            commentsContainer.innerHTML = '';
+            fileUpload.value = '';
+            fileNameDisplay.textContent = '';
+            fullDocumentContext = '';
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file && file.name.endsWith('.docx')) {
+                fileNameDisplay.textContent = `Selected file: ${file.name}`;
+                processFile(file);
+            } else {
+                showError('Please select a valid .docx file.');
+            }
+        }
+
+        async function processFile(file) {
+            uploadSection.classList.add('hidden');
+            loadingIndicator.classList.remove('hidden');
+            errorMessage.classList.add('hidden');
+            resultsSection.classList.add('hidden');
+
+            try {
+                const zip = await JSZip.loadAsync(file);
+                
+                if (!zip.files['word/document.xml'] || !zip.files['word/comments.xml']) {
+                    throw new Error('This .docx file does not seem to contain comments or is not a valid Word document.');
+                }
+
+                const commentsXMLText = await zip.file('word/comments.xml').async('string');
+                const documentXMLText = await zip.file('word/document.xml').async('string');
+
+                const parser = new DOMParser();
+                const commentsDoc = parser.parseFromString(commentsXMLText, 'application/xml');
+                const documentDoc = parser.parseFromString(documentXMLText, 'application/xml');
+
+                const allTextNodes = documentDoc.getElementsByTagName('w:t');
+                fullDocumentContext = Array.from(allTextNodes).map(t => t.textContent).join(' ').replace(/\s+/g, ' ').trim();
+
+                const commentsMap = new Map();
+                const commentNodes = commentsDoc.getElementsByTagName('w:comment');
+                for (const commentNode of commentNodes) {
+                    const id = commentNode.getAttribute('w:id');
+                    const textNodes = commentNode.getElementsByTagName('w:t');
+                    let text = Array.from(textNodes).map(t => t.textContent).join('');
+                    if (id) commentsMap.set(id, text.trim());
+                }
+
+                if (commentsMap.size === 0) {
+                     showError('No comments were found in this document.');
+                     return;
+                }
+
+                const extractedData = [];
+                const commentRangeStarts = Array.from(documentDoc.getElementsByTagName('w:commentRangeStart'));
+
+                for (const startNode of commentRangeStarts) {
+                    const id = startNode.getAttribute('w:id');
+                    if (commentsMap.has(id)) {
+                        let commentedText = '';
+                        let currentNode = startNode.nextSibling;
+                        
+                        while (currentNode && !(currentNode.nodeName === 'w:commentRangeEnd' && currentNode.getAttribute('w:id') === id)) {
+                            if (currentNode.nodeName === 'w:r') {
+                                const textNodes = currentNode.getElementsByTagName('w:t');
+                                commentedText += Array.from(textNodes).map(t => t.textContent).join('');
+                            }
+                            currentNode = currentNode.nextSibling;
+                        }
+                        
+                        extractedData.push({
+                            id: id,
+                            comment: commentsMap.get(id),
+                            originalText: commentedText.trim()
+                        });
+                    }
+                }
+                displayResults(extractedData);
+            } catch (error) {
+                console.error('Error processing file:', error);
+                showError(`An error occurred: ${error.message}`);
+            } finally {
+                loadingIndicator.classList.add('hidden');
+            }
+        }
+
+        function displayResults(data) {
+            commentsContainer.innerHTML = '';
+            if (data.length === 0) {
+                commentsContainer.innerHTML = '<p class="text-center text-gray-500">Could not match any comments to text in the document. The document structure might be complex.</p>';
+            }
+
+            data.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'comment-card bg-white p-6 rounded-lg shadow-md border border-gray-200';
+                card.innerHTML = `
+                    <div class="mb-4">
+                        <span class="text-sm font-semibold text-blue-600 bg-blue-100 py-1 px-3 rounded-full">Comment #${index + 1}</span>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="font-bold text-lg mb-2 text-gray-700">Supervisor's Comment:</h3>
+                            <p class="bg-yellow-100 border-l-4 border-yellow-400 p-3 rounded-r-lg text-yellow-800 italic">"${item.comment}"</p>
+                            
+                            <h3 class="font-bold text-lg mt-4 mb-2 text-gray-700">Original Text:</h3>
+                            <p class="bg-gray-100 p-3 rounded-lg text-gray-600">${item.originalText || '(No text was highlighted for this comment)'}</p>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg mb-2 text-gray-700">AI Assistant</h3>
+                             <div class="text-xs text-gray-500 bg-gray-100 p-2 rounded-md mb-3">
+                                <strong>Note:</strong> The AI suggestion now uses the full document for context.
+                            </div>
+                            <div id="ai-section-${item.id}">
+                                <button onclick="getAISuggestion('${item.id}', \`${item.originalText}\`, \`${item.comment}\`)" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center justify-center">
+                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                                    Get Revision Suggestion
+                                </button>
+                                <div id="ai-result-${item.id}" class="mt-4"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                commentsContainer.appendChild(card);
+            });
+
+            resultsSection.classList.remove('hidden');
+        }
+
+        async function getAISuggestion(id, originalText, comment) {
+            const apiKey = apiKeyInput.value;
+            const provider = apiProviderSelect.value;
+
+            if (!apiKey) {
+                alert('Please enter your API key first.');
+                return;
+            }
+
+            const resultContainer = document.getElementById(`ai-result-${id}`);
+            resultContainer.innerHTML = `<div class="flex items-center justify-center flex-col"><div class="loader !w-6 !h-6 !border-2"></div><p class="text-sm text-gray-500 mt-2">AI is thinking...</p></div>`;
+
+            const basePrompt = `You are an expert academic writing assistant. Your task is to revise a portion of a document based on a supervisor's comment, using the full document for context.
+
+Here is the full text of the document for context:
+---
+${fullDocumentContext}
+---
+
+Now, here is the specific part of the text that needs revision:
+Original Text: "${originalText}"
+
+Here is the supervisor's comment on that text:
+Supervisor's Comment: "${comment}"
+
+Please provide a revised version of the "Original Text" that addresses the supervisor's comment while maintaining consistency with the tone and content of the full document. Provide ONLY the revised text, without any introductory phrases like "Here is the revised text:".`;
+            
+            let apiUrl = '';
+            let payload = {};
+            let headers = {};
+
+            switch (provider) {
+                case 'google':
+                    apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+                    payload = { contents: [{ role: "user", parts: [{ text: basePrompt }] }] };
+                    headers = { 'Content-Type': 'application/json' };
+                    break;
+                
+                case 'openai':
+                    // EXAMPLE for OpenAI - This is where you'd build the request for their API
+                    // apiUrl = 'https://api.openai.com/v1/chat/completions';
+                    // payload = {
+                    //     model: "gpt-4",
+                    //     messages: [{ role: "user", content: basePrompt }]
+                    // };
+                    // headers = { 
+                    //     'Content-Type': 'application/json',
+                    //     'Authorization': `Bearer ${apiKey}`
+                    // };
+                    alert("OpenAI integration is not yet implemented.");
+                    resultContainer.innerHTML = '';
+                    return;
+
+                case 'anthropic':
+                    // EXAMPLE for Anthropic - This is where you'd build the request for their API
+                    alert("Anthropic integration is not yet implemented.");
+                    resultContainer.innerHTML = '';
+                    return;
+            }
+            
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorBody = await response.json();
+                    throw new Error(`API request failed with status ${response.status}: ${errorBody.error.message}`);
+                }
+
+                const result = await response.json();
+                
+                let suggestion = "Sorry, the AI could not generate a suggestion at this time.";
+
+                // --- Logic to extract suggestion based on provider ---
+                if (provider === 'google' && result.candidates && result.candidates[0].content && result.candidates[0].content.parts[0].text) {
+                    suggestion = result.candidates[0].content.parts[0].text;
+                } 
+                // else if (provider === 'openai' && result.choices && result.choices[0].message.content) {
+                //     suggestion = result.choices[0].message.content;
+                // }
+
+                resultContainer.innerHTML = `
+                    <label for="ai-textarea-${id}" class="block text-sm font-medium text-gray-700 mb-1">Suggested Revision:</label>
+                    <textarea id="ai-textarea-${id}" rows="6" class="w-full p-2 border border-gray-300 bg-white text-gray-900 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">${suggestion.trim()}</textarea>
+                    <button onclick="copyToClipboard('ai-textarea-${id}')" class="mt-2 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-1 px-3 rounded-lg text-sm transition-colors">Copy</button>
+                    <span id="copy-feedback-${id}" class="text-sm text-green-600 ml-2"></span>
+                `;
+
+            } catch (error) {
+                console.error("AI suggestion error:", error);
+                resultContainer.innerHTML = `<p class="text-red-500 text-sm">Failed to get suggestion. ${error.message}</p>`;
+            }
+        }
+
+        function copyToClipboard(elementId) {
+            const textarea = document.getElementById(elementId);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                const feedback = document.getElementById(`copy-feedback-${textarea.id.split('-')[2]}`);
+                if(feedback) {
+                    feedback.textContent = 'Copied!';
+                    setTimeout(() => { feedback.textContent = ''; }, 2000);
+                }
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+            }
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.classList.remove('hidden');
+            uploadSection.classList.remove('hidden');
+            loadingIndicator.classList.add('hidden');
+            resultsSection.classList.add('hidden');
+        }
+
+    </script>
+</body>
+</html>
